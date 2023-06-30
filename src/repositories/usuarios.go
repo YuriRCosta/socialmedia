@@ -150,3 +150,101 @@ func (repositorio Usuarios) BuscarPorEmail(email string) (models.Usuario, error)
 
 	return usuario, nil
 }
+
+// Seguir permite que um usuário siga outro
+func (repositorio Usuarios) Seguir(usuarioID, seguidorID uint64) error {
+	statement, err := repositorio.db.Prepare(
+		"insert ignore into seguidores (usuario_id, seguidor_id) values (?, ?)",
+	)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err = statement.Exec(usuarioID, seguidorID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// PararDeSeguir permite que um usuário pare de seguir outro
+func (repositorio Usuarios) PararDeSeguir(usuarioID, seguidorID uint64) error {
+	statement, err := repositorio.db.Prepare(
+		"delete from seguidores where usuario_id = ? and seguidor_id = ?",
+	)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err = statement.Exec(usuarioID, seguidorID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// BuscarSeguidores traz todos os seguidores de um usuário
+func (repositorio Usuarios) BuscarSeguidores(usuarioID uint64) ([]models.Usuario, error) {
+	linhas, err := repositorio.db.Query(`
+		select u.id, u.nome, u.nick, u.email, u.criadoEm
+		from usuarios u inner join seguidores s on u.id = s.seguidor_id where s.usuario_id = ?
+	`, usuarioID)
+	if err != nil {
+		return nil, err
+	}
+	defer linhas.Close()
+
+	var seguidores []models.Usuario
+
+	for linhas.Next() {
+		var seguidor models.Usuario
+
+		if err = linhas.Scan(
+			&seguidor.ID,
+			&seguidor.Nome,
+			&seguidor.Nick,
+			&seguidor.Email,
+			&seguidor.CriadoEm,
+		); err != nil {
+			return nil, err
+		}
+
+		seguidores = append(seguidores, seguidor)
+	}
+
+	return seguidores, nil
+}
+
+// BuscarSeguindo traz todos os usuários que um determinado usuário está seguindo
+func (repositorio Usuarios) BuscarSeguindo(usuarioID uint64) ([]models.Usuario, error) {
+	linhas, err := repositorio.db.Query(`
+		select u.id, u.nome, u.nick, u.email, u.criadoEm
+		from usuarios u inner join seguidores s on u.id = s.usuario_id where s.seguidor_id = ?
+	`, usuarioID)
+	if err != nil {
+		return nil, err
+	}
+	defer linhas.Close()
+
+	var seguindo []models.Usuario
+
+	for linhas.Next() {
+		var usuario models.Usuario
+
+		if err = linhas.Scan(
+			&usuario.ID,
+			&usuario.Nome,
+			&usuario.Nick,
+			&usuario.Email,
+			&usuario.CriadoEm,
+		); err != nil {
+			return nil, err
+		}
+
+		seguindo = append(seguindo, usuario)
+	}
+
+	return seguindo, nil
+}

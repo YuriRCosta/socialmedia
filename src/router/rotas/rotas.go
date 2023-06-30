@@ -1,7 +1,7 @@
 package rotas
 
 import (
-	"api/middlewares"
+	"api/src/middlewares"
 	"net/http"
 
 	"github.com/gorilla/mux"
