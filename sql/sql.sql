@@ -24,3 +24,14 @@ CREATE TABLE `seguidores` (
 	CONSTRAINT `FK__usuarios` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE,
 	CONSTRAINT `FK__usuarios_2` FOREIGN KEY (`seguidor_id`) REFERENCES `usuarios` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE
 )
+
+CREATE TABLE `publicacoes` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`titulo` VARCHAR(50) NOT NULL,
+	`conteudo` VARCHAR(300) NOT NULL,
+	`autor_id` INT NOT NULL,
+	`curtidas` INT NOT NULL,
+	`criadoEm` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+	PRIMARY KEY (`id`),
+	CONSTRAINT `FK__autor_id` FOREIGN KEY (`autor_id`) REFERENCES `usuarios` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE,
+)
